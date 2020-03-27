@@ -64,8 +64,8 @@ const newsService = (function () {
   const apiUrl = 'http://newsapi.org/v2';
 
   return {
-    topHeadlines(country = 'ru', callback) {
-      http.get(`${apiUrl}/top-headlines?country=${country}&category=technology&apiKey=${apiKey}`, callback);
+    topHeadlines(country = 'ru', category = 'technology', callback) {
+      http.get(`${apiUrl}/top-headlines?country=${country}&category=${category}&apiKey=${apiKey}`, callback);
     },
     everything(query, callback) {
       http.get(`${apiUrl}/everything?q=${query}&apiKey=${apiKey}`, callback);
@@ -77,6 +77,7 @@ const newsService = (function () {
 
 const form = document.forms['newsControls'];
 const countrySelect = form.elements['country'];
+const categorySelect = form.elements['category'];
 const searchInput = form.elements['search'];
 
 form.addEventListener('submit', e => {
@@ -96,10 +97,11 @@ function loadNews() {
   showLoader();
 
   const country = countrySelect.value;
+  const category = categorySelect.value;
   const searchText = searchInput.value;
 
   if (!searchText) {
-    newsService.topHeadlines(country, onGetResponse);
+    newsService.topHeadlines(country, category, onGetResponse);
   } else {
     newsService.everything(searchText, onGetResponse);
   }
@@ -113,7 +115,14 @@ function onGetResponse(err, res) {
   }
 
   if (!res.articles.length) {
-    // пустое сообщение
+    M.toast({
+      html: 'News not found'
+    });
+
+    const newsContainer = document.querySelector('.news-container .row');
+    if (newsContainer.children.length) {
+      clearContainer(newsContainer);
+    }
     return;
   }
 
